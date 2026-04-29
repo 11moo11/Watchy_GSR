@@ -168,7 +168,11 @@ class WatchyGSR{
         virtual void setFontColor(uint16_t Color) final;
         virtual tmElements_t UTCtoLocal(time_t Incoming) final;
         virtual time_t getISO8601(String inTime) final;
-   private:
+    private:
+#ifdef GSR_SIMPLE_UI
+        friend class GSRUIModule;
+        friend bool simpleUiConsumePress(WatchyGSR &w, uint8_t Pressed);
+#endif
         void setStatus(String Status);
         void drawMenu();
         void setFontFor(String O, const GFXfont *Normal, const GFXfont *Small, const GFXfont *Smaller, byte Gutter = 5);

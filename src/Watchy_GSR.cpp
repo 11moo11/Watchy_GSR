@@ -1,4 +1,7 @@
 #include "Watchy_GSR.h"
+#ifdef GSR_SIMPLE_UI
+#include "UISimple_GSR.h"
+#endif
 
 static const char UserAgent[] PROGMEM = "Watchy";
 //WiFi statics.
@@ -93,6 +96,10 @@ RTC_DATA_ATTR struct MenuUse final {
     int8_t SubItem;         // Used for menus that have sub items, like alarms and Sync Time.
     int8_t SubSubItem;      // Used mostly in the alarm to offset choice.
 } Menu;
+
+#ifdef GSR_SIMPLE_UI
+RTC_DATA_ATTR SimpleMenuNav SimpleNav;
+#endif
 
 RTC_DATA_ATTR int GuiMode;
 RTC_DATA_ATTR bool VibeMode;          // Vibe Motor is On=True/Off=False, used for the Haptic and Alarms.
@@ -961,12 +968,300 @@ void WatchyGSR::EndOTA(uint8_t Seconds) { OTAOff = millis() + Seconds * 1000; }
 bool WatchyGSR::IsEndOTA() { return (OTAOff > 0 && millis() > OTAOff); }
 void WatchyGSR::ResetEndOTA() { OTAOff = 0; }
 
+#ifdef GSR_SIMPLE_UI
+static char g_simpleLineBuf[8][36];
+static const char *g_simplePtrs[8];
+
+static uint8_t simpleVisibleRows() {
+  return (uint8_t)(GSRUILayout::BODY_H / GSRUILayout::ROW_H);
+}
+
+static void simpleEnsureScroll(uint8_t count) {
+  uint8_t vis = simpleVisibleRows();
+  if (count <= vis) {
+    SimpleNav.scrollOffset = 0;
+    return;
+  }
+  if (SimpleNav.selectedIndex < SimpleNav.scrollOffset) SimpleNav.scrollOffset = SimpleNav.selectedIndex;
+  if (SimpleNav.selectedIndex >= SimpleNav.scrollOffset + vis)
+    SimpleNav.scrollOffset = (uint8_t)(SimpleNav.selectedIndex + 1 - vis);
+}
+
+static void simpleCopyLocaleLine(uint8_t slot, uint8_t localeId) {
+  if (slot >= 8) return;
+  String s = LGSR.GetID(Options.LanguageID, localeId);
+  strncpy(g_simpleLineBuf[slot], s.c_str(), 35);
+  g_simpleLineBuf[slot][35] = '\0';
+  g_simplePtrs[slot] = g_simpleLineBuf[slot];
+}
+
+static uint8_t gsr_simple_build_labels(WatchyGSR &w) {
+  (void)w;
+  uint8_t n = 0;
+  switch (SimpleNav.screen) {
+    case SimpleUIState::MainMenu:
+      simpleCopyLocaleLine(0, 27);
+      simpleCopyLocaleLine(1, 5);
+      simpleCopyLocaleLine(2, 6);
+      simpleCopyLocaleLine(3, 7);
+      simpleCopyLocaleLine(4, 45);
+      n = 5;
+      break;
+    case SimpleUIState::Options:
+      simpleCopyLocaleLine(0, 29);
+      simpleCopyLocaleLine(1, 28);
+      simpleCopyLocaleLine(2, 30);
+      simpleCopyLocaleLine(3, 31);
+      simpleCopyLocaleLine(4, 33);
+      n = 5;
+      break;
+    case SimpleUIState::SystemInfo:
+      snprintf(g_simpleLineBuf[0], 35, "GSR %s", WatchyGSR::Build);
+      g_simplePtrs[0] = g_simpleLineBuf[0];
+      snprintf(g_simpleLineBuf[1], 35, "%.2fV", WatchyGSR::getBatteryVoltage());
+      g_simplePtrs[1] = g_simpleLineBuf[1];
+      {
+        String st = w.CurrentWatchStyle();
+        strncpy(g_simpleLineBuf[2], st.c_str(), 35);
+        g_simpleLineBuf[2][35] = '\0';
+        g_simplePtrs[2] = g_simpleLineBuf[2];
+      }
+      n = 3;
+      break;
+    default:
+      break;
+  }
+  return n;
+}
+
+static const char *simpleBreadcrumb() {
+  switch (SimpleNav.screen) {
+    case SimpleUIState::MainMenu:
+      return "MENU";
+    case SimpleUIState::Options:
+      return "MENU / OPTIONS";
+    case SimpleUIState::SystemInfo:
+      return "MENU / SYSTEM";
+    default:
+      return "MENU";
+  }
+}
+
+static void gsr_simple_draw_menu_ui(WatchyGSR &w) {
+  uint8_t n = gsr_simple_build_labels(w);
+  GSRUIModule ui(w);
+  ui.drawFullMenuShell(SimpleNav, simpleBreadcrumb(), g_simplePtrs, n);
+  SimpleNav.lastSelectedIndex = SimpleNav.selectedIndex;
+  SimpleNav.partialStepsSinceFull = 0;
+}
+
+bool simpleUiConsumePress(WatchyGSR &w, uint8_t Pressed) {
+  uint8_t I;
+  uint8_t n = 0;
+  switch (SimpleNav.screen) {
+    case SimpleUIState::MainMenu:
+      n = 5;
+      break;
+    case SimpleUIState::Options:
+      n = 5;
+      break;
+    case SimpleUIState::SystemInfo:
+      n = 3;
+      break;
+    default:
+      n = 0;
+      break;
+  }
+  if (n == 0) return false;
+
+  if (Pressed == 2) {
+    if (SimpleNav.screen == SimpleUIState::MainMenu) {
+      GuiMode = GSR_WATCHON;
+      SimpleNav.screen = SimpleUIState::WatchFace;
+      SimpleNav.lastSelectedIndex = 255;
+      DoHaptic = true;
+      UpdateDisp = true;
+      w.SetTurbo();
+      return true;
+    }
+    if (SimpleNav.screen == SimpleUIState::Options || SimpleNav.screen == SimpleUIState::SystemInfo) {
+      SimpleNav.screen = SimpleUIState::MainMenu;
+      SimpleNav.selectedIndex = 0;
+      SimpleNav.scrollOffset = 0;
+      SimpleNav.lastSelectedIndex = 255;
+      gsr_ui_invalidate_footer();
+      DoHaptic = true;
+      UpdateDisp = true;
+      w.SetTurbo();
+      return true;
+    }
+    return false;
+  }
+  if (Pressed == 3) {
+    if (SimpleNav.selectedIndex > 0) {
+      SimpleNav.selectedIndex--;
+      simpleEnsureScroll(n);
+      if (SimpleNav.lastSelectedIndex != 255 && SimpleNav.partialStepsSinceFull < GSRUILayout::PARTIAL_STEPS_BEFORE_FULL)
+        SimpleNav.partialNextDraw = !Updates.Full;
+      else
+        SimpleNav.partialNextDraw = false;
+      DoHaptic = true;
+      UpdateDisp = true;
+      w.SetTurbo();
+      return true;
+    }
+    return true;
+  }
+  if (Pressed == 4) {
+    if (SimpleNav.selectedIndex + 1 < n) {
+      SimpleNav.selectedIndex++;
+      simpleEnsureScroll(n);
+      if (SimpleNav.lastSelectedIndex != 255 && SimpleNav.partialStepsSinceFull < GSRUILayout::PARTIAL_STEPS_BEFORE_FULL)
+        SimpleNav.partialNextDraw = !Updates.Full;
+      else
+        SimpleNav.partialNextDraw = false;
+      DoHaptic = true;
+      UpdateDisp = true;
+      w.SetTurbo();
+      return true;
+    }
+    return true;
+  }
+  if (Pressed == 1) {
+    if (SimpleNav.screen == SimpleUIState::MainMenu) {
+      switch (SimpleNav.selectedIndex) {
+        case 0:
+          w.ChangeWatchFace(true);
+          Options.NeedsSaving = true;
+          DoHaptic = true;
+          UpdateDisp = true;
+          w.SetTurbo();
+          return true;
+        case 1:
+          SimpleNav.legacyMode = true;
+          Menu.Style = GSR_MENU_INNORMAL;
+          Menu.Item = GSR_MENU_ALARMS;
+          Menu.SubItem = 0;
+          SimpleNav.lastSelectedIndex = 255;
+          gsr_ui_invalidate_footer();
+          DoHaptic = true;
+          UpdateDisp = true;
+          w.SetTurbo();
+          return true;
+        case 2:
+          SimpleNav.legacyMode = true;
+          Menu.Style = GSR_MENU_INNORMAL;
+          Menu.Item = GSR_MENU_TIMERS;
+          Menu.SubItem = 0;
+          SimpleNav.lastSelectedIndex = 255;
+          gsr_ui_invalidate_footer();
+          DoHaptic = true;
+          UpdateDisp = true;
+          w.SetTurbo();
+          return true;
+        case 3:
+          SimpleNav.screen = SimpleUIState::Options;
+          SimpleNav.selectedIndex = 0;
+          SimpleNav.scrollOffset = 0;
+          SimpleNav.lastSelectedIndex = 255;
+          gsr_ui_invalidate_footer();
+          DoHaptic = true;
+          UpdateDisp = true;
+          w.SetTurbo();
+          return true;
+        case 4:
+          SimpleNav.screen = SimpleUIState::SystemInfo;
+          SimpleNav.selectedIndex = 0;
+          SimpleNav.scrollOffset = 0;
+          SimpleNav.lastSelectedIndex = 255;
+          gsr_ui_invalidate_footer();
+          DoHaptic = true;
+          UpdateDisp = true;
+          w.SetTurbo();
+          return true;
+        default:
+          break;
+      }
+    } else if (SimpleNav.screen == SimpleUIState::SystemInfo) {
+      return true;
+    } else if (SimpleNav.screen == SimpleUIState::Options) {
+      switch (SimpleNav.selectedIndex) {
+        case 0:
+          I = roller(Options.LanguageID + 1, 0, LGSR.MaxLangID());
+          if (I != Options.LanguageID) {
+            Options.LanguageID = I;
+            w.initWatchFaceStyle();
+            Options.NeedsSaving = true;
+          }
+          break;
+        case 1:
+          Options.LightMode = !Options.LightMode;
+          Options.NeedsSaving = true;
+          break;
+        case 2:
+#ifdef GxEPD2DarkBorder
+          Options.Border = !Options.Border;
+          Options.NeedsSaving = true;
+          Updates.Init = true;
+#endif
+          break;
+        case 3:
+          Options.Lefty = !Options.Lefty;
+          Options.NeedsSaving = true;
+          break;
+        case 4:
+          Options.Orientated = !Options.Orientated;
+          Options.NeedsSaving = true;
+          break;
+        default:
+          break;
+      }
+      SimpleNav.partialNextDraw = false;
+      Updates.Full = true;
+      DoHaptic = true;
+      UpdateDisp = true;
+      w.SetTurbo();
+      return true;
+    }
+    return true;
+  }
+  return false;
+}
+#endif
+
 void WatchyGSR::showWatchFace(){
   int I;
   bool B = (Battery.Read > getLowBattery(true));
   if (Options.Performance && B) if (Options.Performance == 1) RefreshCPU(GSR_CPUMID); else if (Options.Performance == 2) RefreshCPU(GSR_CPULOW);
   if (Options.Feedback && DoHaptic && B && AllowHaptic) { HapticMS = 5; SoundBegin(); }
   DisplayInit();
+#ifdef GSR_SIMPLE_UI
+  if (GuiMode == GSR_MENUON && !SimpleNav.legacyMode) {
+    if (WatchTime.NewMinute) {
+      gsr_ui_invalidate_footer();
+      Updates.Full = true;
+      SimpleNav.partialNextDraw = false;
+    }
+    if (SimpleNav.partialNextDraw && !Updates.Full &&
+        SimpleNav.partialStepsSinceFull < GSRUILayout::PARTIAL_STEPS_BEFORE_FULL) {
+      uint8_t n = gsr_simple_build_labels(*this);
+      GSRUIModule ui(*this);
+      ui.refreshMenuBodyPartial(SimpleNav, g_simplePtrs, n);
+      ui.drawFooterBar(false);
+      display.display(true);
+      SimpleNav.partialNextDraw = false;
+      SimpleNav.partialStepsSinceFull++;
+      if (SimpleNav.partialStepsSinceFull >= GSRUILayout::PARTIAL_STEPS_BEFORE_FULL) Updates.Full = true;
+      if (!(InTurbo() || SoundActive() || !DarkWait())) DisplaySleep();
+      DoHaptic = false;
+      Updates.Drawn = true;
+      UpdateDisp = false;
+      Darkness.Went = false;
+      Darkness.Last = millis();
+      return;
+    }
+  }
+#endif
   display.setFullWindow();
   if (GuiMode == GSR_GAMEON) drawGame(); else drawWatchFace();
   WatchyGSR::drawLogOutput();
@@ -981,6 +1276,13 @@ void WatchyGSR::showWatchFace(){
 }
 
 void WatchyGSR::drawWatchFace(){
+#ifdef GSR_SIMPLE_UI
+    if (GuiMode == GSR_MENUON && !SimpleNav.legacyMode) {
+      display.fillScreen(BackColor());
+      gsr_simple_draw_menu_ui(*this);
+      return;
+    }
+#endif
     display.fillScreen(BackColor());
     display.setTextWrap(false);
     if (WatchStyles.AddOn[Options.WatchFaceStyle] == nullptr) { if (!OverrideBitmap()) { if (Design.Face.Bitmap) display.drawBitmap(0, 0, Design.Face.Bitmap, 200, 200, ForeColor(), BackColor()); } } else { if (!WatchStyles.AddOn[Options.WatchFaceStyle]->OverrideBitmap()) { if (Design.Face.Bitmap) display.drawBitmap(0, 0, Design.Face.Bitmap, 200, 200, ForeColor(), BackColor()); } }
@@ -1052,6 +1354,9 @@ void WatchyGSR::drawYear(){
 }
 
 void WatchyGSR::drawMenu(){
+#ifdef GSR_SIMPLE_UI
+    if (!SimpleNav.legacyMode) return;
+#endif
     int16_t  x1, y1, z1;
     uint16_t D,L,B,C,P;
     uint16_t w, h;
@@ -2297,14 +2602,49 @@ void WatchyGSR::handleButtonPress(uint8_t Pressed){
   if (Darkness.Went && !Darkness.Woke) { Darkness.Woke=true; Darkness.Last=millis(); Darkness.Tilt = Darkness.Last; UpdateUTC(); UpdateClock(); UpdateDisp=true; return; }  // Don't do the button, just exit.
   if ((OTAUpdate) && (Pressed == 3 || Pressed == 4)) return;  // Up/Down don't work in these modes.
 
+#ifdef GSR_SIMPLE_UI
+  if (GuiMode == GSR_MENUON && SimpleNav.legacyMode && Pressed == 2) {
+    if (Menu.Style == GSR_MENU_INNORMAL && Menu.SubItem == 0 && Menu.Item >= GSR_MENU_STEPS && Menu.Item <= GSR_MENU_OPTIONS) {
+      SimpleNav.legacyMode = false;
+      SimpleNav.screen = SimpleUIState::MainMenu;
+      SimpleNav.selectedIndex = 0;
+      SimpleNav.scrollOffset = 0;
+      SimpleNav.partialNextDraw = false;
+      SimpleNav.lastSelectedIndex = 255;
+      SimpleNav.partialStepsSinceFull = 0;
+      gsr_ui_invalidate_footer();
+      DoHaptic = true;
+      UpdateDisp = true;
+      SetTurbo();
+      return;
+    }
+  }
+  if (GuiMode == GSR_MENUON && !SimpleNav.legacyMode) {
+    if (simpleUiConsumePress(*this, Pressed)) return;
+  }
+#endif
+
   switch (Pressed){
     case 1:
           if (GuiMode != GSR_MENUON && GuiMode != GSR_GAMEON && !GetMenuOverride()){ // If MenuOverride is on, it will not let the menu work, meaning, unless it is open already, it won't open.
             GuiMode = GSR_MENUON;
+#ifdef GSR_SIMPLE_UI
+            SimpleNav.screen = SimpleUIState::MainMenu;
+            SimpleNav.selectedIndex = 0;
+            SimpleNav.scrollOffset = 0;
+            SimpleNav.partialStepsSinceFull = 0;
+            SimpleNav.legacyMode = false;
+            SimpleNav.partialNextDraw = false;
+            SimpleNav.lastSelectedIndex = 255;
+            gsr_ui_invalidate_footer();
+#endif
             DoHaptic = true;
             UpdateDisp = true;  // Quick Update.
             SetTurbo();
           }else if (GuiMode == GSR_MENUON){
+#ifdef GSR_SIMPLE_UI
+              if (!SimpleNav.legacyMode) break;
+#endif
               if (Menu.Item == GSR_MENU_OPTIONS && Menu.SubItem == 0){  // Options
                   Menu.Item = GSR_MENU_STYL;
                   Menu.Style = GSR_MENU_INOPTIONS;
@@ -4300,6 +4640,15 @@ void WatchyGSR::initZeros(){
     Menu.Item = 0;
     Menu.SubItem = 0;
     Menu.SubSubItem = 0;
+#ifdef GSR_SIMPLE_UI
+    SimpleNav.screen = SimpleUIState::WatchFace;
+    SimpleNav.selectedIndex = 0;
+    SimpleNav.scrollOffset = 0;
+    SimpleNav.partialStepsSinceFull = 0;
+    SimpleNav.legacyMode = false;
+    SimpleNav.partialNextDraw = false;
+    SimpleNav.lastSelectedIndex = 255;
+#endif
     Battery.Level = -2;
     ActiveMode = false;
     OTATry = 0;

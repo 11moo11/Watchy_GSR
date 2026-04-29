@@ -117,4 +117,9 @@
 #define GSR_CPUDEF 65281
 #define GSR_CPUMID 65282
 #define GSR_CPULOW 65283
+
+// Modular full-screen simple UI (sketch-style menu). Undefine via build flag -UGSR_SIMPLE_UI to use legacy bottom-band menu only.
+#ifndef GSR_SIMPLE_UI
+#define GSR_SIMPLE_UI 1
+#endif
 #endif
