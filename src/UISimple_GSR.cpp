@@ -83,22 +83,29 @@ void GSRUIModule::drawHeader(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> &
 
 void GSRUIModule::drawFooterDitherAndPill(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> &d,
                                           int16_t y, int16_t h, const char *timeDateLine, uint16_t fg, uint16_t) {
+  int16_t startX = (GSRUIConfig::SCREEN - GSRUIConfig::FOOTER_W) / 2;
   for (int16_t row = 0; row < h; row++) {
-    for (int16_t col = 0; col < GSRUIConfig::SCREEN; col++) {
-      bool stip = ((col + row) & 1) == 0;
-      d.drawPixel(col, y + row, stip ? GxEPD_BLACK : GxEPD_WHITE);
+    for (int16_t col = 0; col < GSRUIConfig::FOOTER_W; col++) {
+      int16_t px = startX + col;
+      bool stip = ((px + row) & 1) == 0;
+      d.drawPixel(px, y + row, stip ? GxEPD_BLACK : GxEPD_WHITE);
     }
   }
   d.setFont(GSR_IBMMono_Small);
   int16_t tx, ty;
   uint16_t tw, th;
   d.getTextBounds(timeDateLine, 0, 0, &tx, &ty, &tw, &th);
-  int16_t px = (GSRUIConfig::SCREEN - (int16_t)tw - 16) / 2;
+  
+  int16_t pillW = (GSRUIConfig::CLOCK_W > 0) ? GSRUIConfig::CLOCK_W : (int16_t)(tw + 12);
+  int16_t pillX = (GSRUIConfig::SCREEN - pillW) / 2;
   int16_t py = (int16_t)(y + (h - (int16_t)th) / 2 + (int16_t)th - 2);
-  d.fillRoundRect((int16_t)(px - 6), (int16_t)(py - (int16_t)th - 4), (int16_t)(tw + 12), (int16_t)(th + 8), 4, GxEPD_WHITE);
-  d.drawRoundRect((int16_t)(px - 6), (int16_t)(py - (int16_t)th - 4), (int16_t)(tw + 12), (int16_t)(th + 8), 4, GxEPD_BLACK);
+  
+  d.fillRoundRect(pillX, (int16_t)(py - (int16_t)th - 4), pillW, (int16_t)(th + 8), 4, GxEPD_WHITE);
+  d.drawRoundRect(pillX, (int16_t)(py - (int16_t)th - 4), pillW, (int16_t)(th + 8), 4, GxEPD_BLACK);
+  
   d.setTextColor(fg);
-  d.setCursor(px, py);
+  int16_t textX = pillX + (pillW - tw) / 2;
+  d.setCursor(textX, py);
   d.print(timeDateLine);
 }
 

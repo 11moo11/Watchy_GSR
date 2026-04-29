@@ -30,7 +30,9 @@ constexpr int16_t MENU_TRACKING = 3;
 // --- Advanced Layout ---
 
 constexpr int16_t SCREEN = 200;
-constexpr int16_t HEADER_H = 20;
+constexpr int16_t HEADER_H = 40;
+constexpr int16_t FOOTER_W = SCREEN - 100;
+constexpr int16_t CLOCK_W = 0; // Set to > 0 for fixed width, or 0 to auto-size to text
 constexpr int16_t FOOTER_H = 40;
 constexpr int16_t BODY_Y = HEADER_H;
 constexpr int16_t BODY_H = SCREEN - HEADER_H - FOOTER_H;
