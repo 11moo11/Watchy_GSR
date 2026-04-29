@@ -59,12 +59,12 @@ void GSRUIModule::drawHeader(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> &
     d.drawRect(2, 3, box, (int16_t)(GSRUILayout::HEADER_H - 6), GxEPD_BLACK);
     d.setFont(GSR_IBMMono_Menu);
     d.setTextColor(fg);
-    d.setCursor(8, 20);
+    d.setCursor(8, 24);
     d.print("<");
   }
   d.setFont(GSR_IBMMono_Small);
   d.setTextColor(fg);
-  d.setCursor(showBack ? (int16_t)(box + 8) : 4, 20);
+  d.setCursor(showBack ? (int16_t)(box + 8) : 4, 24);
   d.print(title);
 }
 
@@ -109,7 +109,9 @@ void GSRUIModule::drawScrollbar(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT
 void GSRUIModule::drawMenuBodyRegion(const SimpleMenuNav &nav, const char *const *labels, uint8_t count) {
   auto &d = WatchyGSR::display;
   uint8_t vis = visibleRowCount(GSRUILayout::BODY_H);
-  int16_t listX = GSRUILayout::BODY_PAD_X + GSRUILayout::SIDEBAR_W + 1;
+  bool isSubMenu = (nav.screen != SimpleUIState::MainMenu);
+  int16_t sidebarWidth = isSubMenu ? GSRUILayout::SIDEBAR_W : 0;
+  int16_t listX = GSRUILayout::BODY_PAD_X + sidebarWidth + 1;
   int16_t listW = (int16_t)(GSRUILayout::SCREEN - listX - GSRUILayout::SCROLLBAR_W - 2);
   int16_t bodyY = GSRUILayout::BODY_Y;
   d.fillRect(listX, bodyY, listW, GSRUILayout::BODY_H, GxEPD_WHITE);
@@ -132,7 +134,9 @@ void GSRUIModule::drawFullMenuShell(const SimpleMenuNav &nav, const char *breadc
   d.fillScreen(bg);
   bool back = (nav.screen != SimpleUIState::MainMenu);
   drawHeader(d, back, breadcrumb, fg, bg);
-  drawDitherSidebar(d, GSRUILayout::BODY_PAD_X, GSRUILayout::BODY_Y, GSRUILayout::SIDEBAR_W, GSRUILayout::BODY_H);
+  if (back) {
+    drawDitherSidebar(d, GSRUILayout::BODY_PAD_X, GSRUILayout::BODY_Y, GSRUILayout::SIDEBAR_W, GSRUILayout::BODY_H);
+  }
   drawMenuBodyRegion(nav, labels, count);
   drawFooterBar(true);
 }
@@ -169,7 +173,10 @@ void GSRUIModule::refreshMenuBodyPartial(const SimpleMenuNav &nav, const char *c
   d.firstPage();
   do {
     d.fillRect(0, y, GSRUILayout::SCREEN, h, GxEPD_WHITE);
-    drawDitherSidebar(d, GSRUILayout::BODY_PAD_X, GSRUILayout::BODY_Y, GSRUILayout::SIDEBAR_W, GSRUILayout::BODY_H);
+    bool back = (nav.screen != SimpleUIState::MainMenu);
+    if (back) {
+      drawDitherSidebar(d, GSRUILayout::BODY_PAD_X, GSRUILayout::BODY_Y, GSRUILayout::SIDEBAR_W, GSRUILayout::BODY_H);
+    }
     drawMenuBodyRegion(nav, labels, count);
   } while (d.nextPage());
 }
