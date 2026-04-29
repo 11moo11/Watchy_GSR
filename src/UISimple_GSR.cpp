@@ -164,19 +164,16 @@ void GSRUIModule::drawFooterBar(bool forceRedraw) {
 }
 
 void GSRUIModule::refreshMenuBodyPartial(const SimpleMenuNav &nav, const char *const *labels, uint8_t count) {
-  app.DisplayInit();
+  gsr_ui_invalidate_footer(); // Force footer to redraw to extend the e-paper partial update bounding box to the bottom
   int16_t y = align8(GSRUILayout::BODY_Y);
   int16_t yEnd = (int16_t)(GSRUILayout::BODY_Y + GSRUILayout::BODY_H);
   int16_t h = (int16_t)(align8((int16_t)(yEnd + 7)) - y);
   auto &d = WatchyGSR::display;
-  d.setPartialWindow(0, y, GSRUILayout::SCREEN, h);
-  d.firstPage();
-  do {
-    d.fillRect(0, y, GSRUILayout::SCREEN, h, GxEPD_WHITE);
-    bool back = (nav.screen != SimpleUIState::MainMenu);
-    if (back) {
-      drawDitherSidebar(d, GSRUILayout::BODY_PAD_X, GSRUILayout::BODY_Y, GSRUILayout::SIDEBAR_W, GSRUILayout::BODY_H);
-    }
-    drawMenuBodyRegion(nav, labels, count);
-  } while (d.nextPage());
+  
+  d.fillRect(0, y, GSRUILayout::SCREEN, h, GxEPD_WHITE);
+  bool back = (nav.screen != SimpleUIState::MainMenu);
+  if (back) {
+    drawDitherSidebar(d, GSRUILayout::BODY_PAD_X, GSRUILayout::BODY_Y, GSRUILayout::SIDEBAR_W, GSRUILayout::BODY_H);
+  }
+  drawMenuBodyRegion(nav, labels, count);
 }
