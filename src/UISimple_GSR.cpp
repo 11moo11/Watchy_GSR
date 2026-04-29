@@ -10,8 +10,8 @@ static int16_t align8(int16_t v) { return (int16_t)((v / 8) * 8); }
 GSRUIModule::GSRUIModule(WatchyGSR &appRef) : app(appRef) {}
 
 uint8_t GSRUIModule::visibleRowCount(int16_t bodyH) const {
-  if (bodyH < GSRUILayout::ROW_H) return 1;
-  return (uint8_t)(bodyH / GSRUILayout::ROW_H);
+  if (bodyH < GSRUIConfig::ROW_H) return 1;
+  return (uint8_t)(bodyH / GSRUIConfig::ROW_H);
 }
 
 void GSRUIModule::drawDitherSidebar(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> &d,
@@ -30,6 +30,19 @@ void GSRUIModule::drawDitherSidebar(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HE
   }
 }
 
+static void printWithTracking(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> &d, const char *text, int16_t tracking) {
+  if (tracking <= 0) {
+    d.print(text);
+    return;
+  }
+  while (*text) {
+    int16_t y = d.getCursorY();
+    d.print(*text);
+    d.setCursor(d.getCursorX() + tracking, y);
+    text++;
+  }
+}
+
 void GSRUIModule::drawListItem(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> &d,
                                int16_t x, int16_t y, int16_t w, int16_t h,
                                const char *text, ListItemVisual vis) {
@@ -39,24 +52,24 @@ void GSRUIModule::drawListItem(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>
     d.setFont(GSR_IBMMono_Menu);
     d.setTextColor(GxEPD_WHITE);
     d.setCursor((int16_t)(x + dashW + 2), (int16_t)(y + h - 4));
-    d.print(text);
+    printWithTracking(d, text, GSRUIConfig::MENU_TRACKING);
   } else {
     d.fillRect(x, y, w, h, GxEPD_WHITE);
     d.drawFastHLine(x + 1, y + h / 2, dashW - 1, GxEPD_BLACK);
     d.setFont(GSR_IBMMono_Menu);
     d.setTextColor(GxEPD_BLACK);
     d.setCursor((int16_t)(x + dashW + 2), (int16_t)(y + h - 4));
-    d.print(text);
+    printWithTracking(d, text, GSRUIConfig::MENU_TRACKING);
   }
 }
 
 void GSRUIModule::drawHeader(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> &d,
                              bool showBack, const char *title, uint16_t fg, uint16_t bg) {
-  d.fillRect(0, 0, GSRUILayout::SCREEN, GSRUILayout::HEADER_H, bg);
-  d.drawFastHLine(0, (int16_t)(GSRUILayout::HEADER_H - 1), GSRUILayout::SCREEN, GxEPD_BLACK);
+  d.fillRect(0, 0, GSRUIConfig::SCREEN, GSRUIConfig::HEADER_H, bg);
+  d.drawFastHLine(0, (int16_t)(GSRUIConfig::HEADER_H - 1), GSRUIConfig::SCREEN, GxEPD_BLACK);
   const int box = 22;
   if (showBack) {
-    d.drawRect(2, 3, box, (int16_t)(GSRUILayout::HEADER_H - 6), GxEPD_BLACK);
+    d.drawRect(2, 3, box, (int16_t)(GSRUIConfig::HEADER_H - 6), GxEPD_BLACK);
     d.setFont(GSR_IBMMono_Menu);
     d.setTextColor(fg);
     d.setCursor(8, 24);
@@ -71,7 +84,7 @@ void GSRUIModule::drawHeader(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> &
 void GSRUIModule::drawFooterDitherAndPill(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> &d,
                                           int16_t y, int16_t h, const char *timeDateLine, uint16_t fg, uint16_t) {
   for (int16_t row = 0; row < h; row++) {
-    for (int16_t col = 0; col < GSRUILayout::SCREEN; col++) {
+    for (int16_t col = 0; col < GSRUIConfig::SCREEN; col++) {
       bool stip = ((col + row) & 1) == 0;
       d.drawPixel(col, y + row, stip ? GxEPD_BLACK : GxEPD_WHITE);
     }
@@ -80,7 +93,7 @@ void GSRUIModule::drawFooterDitherAndPill(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D
   int16_t tx, ty;
   uint16_t tw, th;
   d.getTextBounds(timeDateLine, 0, 0, &tx, &ty, &tw, &th);
-  int16_t px = (GSRUILayout::SCREEN - (int16_t)tw - 16) / 2;
+  int16_t px = (GSRUIConfig::SCREEN - (int16_t)tw - 16) / 2;
   int16_t py = (int16_t)(y + (h - (int16_t)th) / 2 + (int16_t)th - 2);
   d.fillRoundRect((int16_t)(px - 6), (int16_t)(py - (int16_t)th - 4), (int16_t)(tw + 12), (int16_t)(th + 8), 4, GxEPD_WHITE);
   d.drawRoundRect((int16_t)(px - 6), (int16_t)(py - (int16_t)th - 4), (int16_t)(tw + 12), (int16_t)(th + 8), 4, GxEPD_BLACK);
@@ -108,22 +121,22 @@ void GSRUIModule::drawScrollbar(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT
 
 void GSRUIModule::drawMenuBodyRegion(const SimpleMenuNav &nav, const char *const *labels, uint8_t count) {
   auto &d = WatchyGSR::display;
-  uint8_t vis = visibleRowCount(GSRUILayout::BODY_H);
+  uint8_t vis = visibleRowCount(GSRUIConfig::BODY_H);
   bool isSubMenu = (nav.screen != SimpleUIState::MainMenu);
-  int16_t sidebarWidth = isSubMenu ? GSRUILayout::SIDEBAR_W : 0;
-  int16_t listX = GSRUILayout::BODY_PAD_X + sidebarWidth + 1;
-  int16_t listW = (int16_t)(GSRUILayout::SCREEN - listX - GSRUILayout::SCROLLBAR_W - 2);
-  int16_t bodyY = GSRUILayout::BODY_Y;
-  d.fillRect(listX, bodyY, listW, GSRUILayout::BODY_H, GxEPD_WHITE);
+  int16_t sidebarWidth = isSubMenu ? GSRUIConfig::SIDEBAR_W : 0;
+  int16_t listX = GSRUIConfig::BODY_PAD_X + sidebarWidth + 1;
+  int16_t listW = (int16_t)(GSRUIConfig::SCREEN - listX - GSRUIConfig::SCROLLBAR_W - 2);
+  int16_t bodyY = GSRUIConfig::BODY_Y;
+  d.fillRect(listX, bodyY, listW, GSRUIConfig::BODY_H, GxEPD_WHITE);
   for (uint8_t r = 0; r < vis; r++) {
     uint8_t idx = (uint8_t)(nav.scrollOffset + r);
     if (idx >= count) break;
-    int16_t ry = (int16_t)(bodyY + r * GSRUILayout::ROW_H);
+    int16_t ry = (int16_t)(bodyY + r * GSRUIConfig::ROW_H);
     ListItemVisual visu = (idx == nav.selectedIndex) ? ListItemVisual::Selected : ListItemVisual::Normal;
-    drawListItem(d, listX, ry, listW, GSRUILayout::ROW_H, labels[idx], visu);
+    drawListItem(d, listX, ry, listW, GSRUIConfig::ROW_H, labels[idx], visu);
   }
-  int16_t sx = (int16_t)(GSRUILayout::SCREEN - GSRUILayout::SCROLLBAR_W - 1);
-  drawScrollbar(d, sx, bodyY, GSRUILayout::SCROLLBAR_W, GSRUILayout::BODY_H, nav.scrollOffset, count, vis);
+  int16_t sx = (int16_t)(GSRUIConfig::SCREEN - GSRUIConfig::SCROLLBAR_W - 1);
+  drawScrollbar(d, sx, bodyY, GSRUIConfig::SCROLLBAR_W, GSRUIConfig::BODY_H, nav.scrollOffset, count, vis);
 }
 
 void GSRUIModule::drawFullMenuShell(const SimpleMenuNav &nav, const char *breadcrumb,
@@ -135,7 +148,7 @@ void GSRUIModule::drawFullMenuShell(const SimpleMenuNav &nav, const char *breadc
   bool back = (nav.screen != SimpleUIState::MainMenu);
   drawHeader(d, back, breadcrumb, fg, bg);
   if (back) {
-    drawDitherSidebar(d, GSRUILayout::BODY_PAD_X, GSRUILayout::BODY_Y, GSRUILayout::SIDEBAR_W, GSRUILayout::BODY_H);
+    drawDitherSidebar(d, GSRUIConfig::BODY_PAD_X, GSRUIConfig::BODY_Y, GSRUIConfig::SIDEBAR_W, GSRUIConfig::BODY_H);
   }
   drawMenuBodyRegion(nav, labels, count);
   drawFooterBar(true);
@@ -153,7 +166,7 @@ void GSRUIModule::drawFooterBar(bool forceRedraw) {
            (unsigned)(WatchTime.Local.Year + 1900 + WatchyGSR::SRTC.getLocalYearOffset()));
   line += datebuf;
   auto &d = WatchyGSR::display;
-  drawFooterDitherAndPill(d, (int16_t)(GSRUILayout::SCREEN - GSRUILayout::FOOTER_H), GSRUILayout::FOOTER_H, line.c_str(),
+  drawFooterDitherAndPill(d, (int16_t)(GSRUIConfig::SCREEN - GSRUIConfig::FOOTER_H), GSRUIConfig::FOOTER_H, line.c_str(),
                           GxEPD_BLACK, GxEPD_WHITE);
   g_footerState.dirty = false;
   g_footerState.lastMinute = WatchTime.Local.Minute;
@@ -165,15 +178,15 @@ void GSRUIModule::drawFooterBar(bool forceRedraw) {
 
 void GSRUIModule::refreshMenuBodyPartial(const SimpleMenuNav &nav, const char *const *labels, uint8_t count) {
   gsr_ui_invalidate_footer(); // Force footer to redraw to extend the e-paper partial update bounding box to the bottom
-  int16_t y = align8(GSRUILayout::BODY_Y);
-  int16_t yEnd = (int16_t)(GSRUILayout::BODY_Y + GSRUILayout::BODY_H);
+  int16_t y = align8(GSRUIConfig::BODY_Y);
+  int16_t yEnd = (int16_t)(GSRUIConfig::BODY_Y + GSRUIConfig::BODY_H);
   int16_t h = (int16_t)(align8((int16_t)(yEnd + 7)) - y);
   auto &d = WatchyGSR::display;
   
-  d.fillRect(0, y, GSRUILayout::SCREEN, h, GxEPD_WHITE);
+  d.fillRect(0, y, GSRUIConfig::SCREEN, h, GxEPD_WHITE);
   bool back = (nav.screen != SimpleUIState::MainMenu);
   if (back) {
-    drawDitherSidebar(d, GSRUILayout::BODY_PAD_X, GSRUILayout::BODY_Y, GSRUILayout::SIDEBAR_W, GSRUILayout::BODY_H);
+    drawDitherSidebar(d, GSRUIConfig::BODY_PAD_X, GSRUIConfig::BODY_Y, GSRUIConfig::SIDEBAR_W, GSRUIConfig::BODY_H);
   }
   drawMenuBodyRegion(nav, labels, count);
 }

@@ -1,0 +1,216 @@
+Processing watchy-v1-v2 (platform: espressif32 @ 6.9.0; framework: arduino; board: esp32dev)
+--------------------------------------------------------------------------------
+Library Manager: Installing TimeLib
+Library Manager: Installing WiFiUdp
+Library Manager: Installing WiFiGeneric
+Verbose mode can be enabled via `-v, --verbose` option
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/esp32dev.html
+PLATFORM: Espressif 32 (6.9.0) > Espressif ESP32 Dev Module
+HARDWARE: ESP32 240MHz, 320KB RAM, 4MB Flash
+DEBUG: Current (cmsis-dap) External (cmsis-dap, esp-bridge, esp-prog, iot-bus-jtag, jlink, minimodule, olimex-arm-usb-ocd, olimex-arm-usb-ocd-h, olimex-arm-usb-tiny-h, olimex-jtag-tiny, tumpa)
+PACKAGES: 
+ - framework-arduinoespressif32 @ 3.20017.241212+sha.dcc1105b 
+ - tool-esptoolpy @ 1.40501.0 (4.5.1) 
+ - toolchain-xtensa-esp32 @ 8.4.0+2021r2-patch5
+Converting GSR.ino
+LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
+LDF Modes: Finder ~ deep, Compatibility ~ soft
+Found 49 compatible libraries
+Scanning dependencies...
+Dependency Graph
+|-- Olson2POSIX @ 1.6.0+sha.4488b7d
+|-- SmallNTP @ 1.4.0+sha.2308e8a
+|-- SmallRTC @ 2.4.7+sha.54c1ae7
+|-- StableBMA @ 1.6.0+sha.9e75303
+|-- Rtc_Pcf8563 @ 1.0.3+sha.4967023
+|-- GxEPD2 @ 1.6.9+sha.de82887
+|-- DS3232RTC @ 2.0.0+sha.58c5e02
+|-- Adafruit GFX Library @ 1.12.6+sha.ac6d7c3
+|-- ArduinoJson @ 7.4.2+sha.d4e745a
+|-- NTPClient @ 3.2.1+sha.e0e3b65
+|-- BMA423 Library @ 0.0.1+sha.45a857e
+|-- ArduinoOTA @ 2.0.0
+|-- ESPmDNS @ 2.0.0
+|-- HTTPClient @ 2.0.0
+|-- WebServer @ 2.0.0
+|-- WiFi @ 2.0.0
+|-- Wire @ 2.0.0
+Building in release mode
+Compiling .pio/build/watchy-v1-v2/src/GSR.ino.cpp.o
+Compiling .pio/build/watchy-v1-v2/src/UISimple_GSR.cpp.o
+In file included from src/UISimple_GSR.cpp:1:
+src/UISimple_GSR.h:17:11: error: 'int16_t' does not name a type; did you mean 'char16_t'?
+ constexpr int16_t ROW_H = 18;
+           ^~~~~~~
+           char16_t
+src/UISimple_GSR.h:20:11: error: 'int16_t' does not name a type; did you mean 'char16_t'?
+ constexpr int16_t MENU_TRACKING = 0;
+           ^~~~~~~
+           char16_t
+src/UISimple_GSR.h:24:11: error: 'int16_t' does not name a type; did you mean 'char16_t'?
+ constexpr int16_t SCREEN = 200;
+           ^~~~~~~
+           char16_t
+src/UISimple_GSR.h:25:11: error: 'int16_t' does not name a type; did you mean 'char16_t'?
+ constexpr int16_t HEADER_H = 32;
+           ^~~~~~~
+           char16_t
+src/UISimple_GSR.h:26:11: error: 'int16_t' does not name a type; did you mean 'char16_t'?
+ constexpr int16_t FOOTER_H = 40;
+           ^~~~~~~
+           char16_t
+src/UISimple_GSR.h:27:11: error: 'int16_t' does not name a type; did you mean 'char16_t'?
+ constexpr int16_t BODY_Y = HEADER_H;
+           ^~~~~~~
+           char16_t
+src/UISimple_GSR.h:28:11: error: 'int16_t' does not name a type; did you mean 'char16_t'?
+ constexpr int16_t BODY_H = SCREEN - HEADER_H - FOOTER_H;
+           ^~~~~~~
+           char16_t
+src/UISimple_GSR.h:29:11: error: 'int16_t' does not name a type; did you mean 'char16_t'?
+ constexpr int16_t SIDEBAR_W = 14;
+           ^~~~~~~
+           char16_t
+src/UISimple_GSR.h:30:11: error: 'int16_t' does not name a type; did you mean 'char16_t'?
+ constexpr int16_t SCROLLBAR_W = 5;
+           ^~~~~~~
+           char16_t
+src/UISimple_GSR.h:31:11: error: 'int16_t' does not name a type; did you mean 'char16_t'?
+ constexpr int16_t BODY_PAD_X = 2;
+           ^~~~~~~
+           char16_t
+src/UISimple_GSR.h:32:11: error: 'uint8_t' does not name a type
+ constexpr uint8_t PARTIAL_STEPS_BEFORE_FULL = 14;
+           ^~~~~~~
+src/UISimple_GSR.cpp: In member function 'uint8_t GSRUIModule::visibleRowCount(int16_t) const':
+src/UISimple_GSR.cpp:13:28: error: 'ROW_H' is not a member of 'GSRUIConfig'
+   if (bodyH < GSRUIConfig::ROW_H) return 1;
+                            ^~~~~
+src/UISimple_GSR.cpp:14:41: error: 'ROW_H' is not a member of 'GSRUIConfig'
+   return (uint8_t)(bodyH / GSRUIConfig::ROW_H);
+                                         ^~~~~
+src/UISimple_GSR.cpp: In static member function 'static void GSRUIModule::drawListItem(GxEPD2_BW<GxEPD2_154_D67, 200>&, int16_t, int16_t, int16_t, int16_t, const char*, ListItemVisual)':
+src/UISimple_GSR.cpp:55:45: error: 'MENU_TRACKING' is not a member of 'GSRUIConfig'
+     printWithTracking(d, text, GSRUIConfig::MENU_TRACKING);
+                                             ^~~~~~~~~~~~~
+src/UISimple_GSR.cpp:62:45: error: 'MENU_TRACKING' is not a member of 'GSRUIConfig'
+     printWithTracking(d, text, GSRUIConfig::MENU_TRACKING);
+                                             ^~~~~~~~~~~~~
+src/UISimple_GSR.cpp: In static member function 'static void GSRUIModule::drawHeader(GxEPD2_BW<GxEPD2_154_D67, 200>&, bool, const char*, uint16_t, uint16_t)':
+src/UISimple_GSR.cpp:68:33: error: 'SCREEN' is not a member of 'GSRUIConfig'
+   d.fillRect(0, 0, GSRUIConfig::SCREEN, GSRUIConfig::HEADER_H, bg);
+                                 ^~~~~~
+src/UISimple_GSR.cpp:68:54: error: 'HEADER_H' is not a member of 'GSRUIConfig'
+   d.fillRect(0, 0, GSRUIConfig::SCREEN, GSRUIConfig::HEADER_H, bg);
+                                                      ^~~~~~~~
+src/UISimple_GSR.cpp:69:45: error: 'HEADER_H' is not a member of 'GSRUIConfig'
+   d.drawFastHLine(0, (int16_t)(GSRUIConfig::HEADER_H - 1), GSRUIConfig::SCREEN, GxEPD_BLACK);
+                                             ^~~~~~~~
+src/UISimple_GSR.cpp:69:73: error: 'SCREEN' is not a member of 'GSRUIConfig'
+   d.drawFastHLine(0, (int16_t)(GSRUIConfig::HEADER_H - 1), GSRUIConfig::SCREEN, GxEPD_BLACK);
+                                                                         ^~~~~~
+src/UISimple_GSR.cpp:72:50: error: 'HEADER_H' is not a member of 'GSRUIConfig'
+     d.drawRect(2, 3, box, (int16_t)(GSRUIConfig::HEADER_H - 6), GxEPD_BLACK);
+                                                  ^~~~~~~~
+src/UISimple_GSR.cpp: In static member function 'static void GSRUIModule::drawFooterDitherAndPill(GxEPD2_BW<GxEPD2_154_D67, 200>&, int16_t, int16_t, const char*, uint16_t, uint16_t)':
+src/UISimple_GSR.cpp:87:46: error: 'SCREEN' is not a member of 'GSRUIConfig'
+     for (int16_t col = 0; col < GSRUIConfig::SCREEN; col++) {
+                                              ^~~~~~
+src/UISimple_GSR.cpp:96:30: error: 'SCREEN' is not a member of 'GSRUIConfig'
+   int16_t px = (GSRUIConfig::SCREEN - (int16_t)tw - 16) / 2;
+                              ^~~~~~
+src/UISimple_GSR.cpp: In member function 'void GSRUIModule::drawMenuBodyRegion(const SimpleMenuNav&, const char* const*, uint8_t)':
+src/UISimple_GSR.cpp:124:46: error: 'BODY_H' is not a member of 'GSRUIConfig'
+   uint8_t vis = visibleRowCount(GSRUIConfig::BODY_H);
+                                              ^~~~~~
+src/UISimple_GSR.cpp:126:51: error: 'SIDEBAR_W' is not a member of 'GSRUIConfig'
+   int16_t sidebarWidth = isSubMenu ? GSRUIConfig::SIDEBAR_W : 0;
+                                                   ^~~~~~~~~
+src/UISimple_GSR.cpp:127:32: error: 'BODY_PAD_X' is not a member of 'GSRUIConfig'
+   int16_t listX = GSRUIConfig::BODY_PAD_X + sidebarWidth + 1;
+                                ^~~~~~~~~~
+src/UISimple_GSR.cpp:128:42: error: 'SCREEN' is not a member of 'GSRUIConfig'
+   int16_t listW = (int16_t)(GSRUIConfig::SCREEN - listX - GSRUIConfig::SCROLLBAR_W - 2);
+                                          ^~~~~~
+src/UISimple_GSR.cpp:128:72: error: 'SCROLLBAR_W' is not a member of 'GSRUIConfig'
+   int16_t listW = (int16_t)(GSRUIConfig::SCREEN - listX - GSRUIConfig::SCROLLBAR_W - 2);
+                                                                        ^~~~~~~~~~~
+src/UISimple_GSR.cpp:129:32: error: 'BODY_Y' is not a member of 'GSRUIConfig'
+   int16_t bodyY = GSRUIConfig::BODY_Y;
+                                ^~~~~~
+src/UISimple_GSR.cpp:130:48: error: 'BODY_H' is not a member of 'GSRUIConfig'
+   d.fillRect(listX, bodyY, listW, GSRUIConfig::BODY_H, GxEPD_WHITE);
+                                                ^~~~~~
+src/UISimple_GSR.cpp:134:53: error: 'ROW_H' is not a member of 'GSRUIConfig'
+     int16_t ry = (int16_t)(bodyY + r * GSRUIConfig::ROW_H);
+                                                     ^~~~~
+src/UISimple_GSR.cpp:136:52: error: 'ROW_H' is not a member of 'GSRUIConfig'
+     drawListItem(d, listX, ry, listW, GSRUIConfig::ROW_H, labels[idx], visu);
+                                                    ^~~~~
+src/UISimple_GSR.cpp:138:39: error: 'SCREEN' is not a member of 'GSRUIConfig'
+   int16_t sx = (int16_t)(GSRUIConfig::SCREEN - GSRUIConfig::SCROLLBAR_W - 1);
+                                       ^~~~~~
+src/UISimple_GSR.cpp:138:61: error: 'SCROLLBAR_W' is not a member of 'GSRUIConfig'
+   int16_t sx = (int16_t)(GSRUIConfig::SCREEN - GSRUIConfig::SCROLLBAR_W - 1);
+                                                             ^~~~~~~~~~~
+src/UISimple_GSR.cpp:139:44: error: 'SCROLLBAR_W' is not a member of 'GSRUIConfig'
+   drawScrollbar(d, sx, bodyY, GSRUIConfig::SCROLLBAR_W, GSRUIConfig::BODY_H, nav.scrollOffset, count, vis);
+                                            ^~~~~~~~~~~
+src/UISimple_GSR.cpp:139:70: error: 'BODY_H' is not a member of 'GSRUIConfig'
+   drawScrollbar(d, sx, bodyY, GSRUIConfig::SCROLLBAR_W, GSRUIConfig::BODY_H, nav.scrollOffset, count, vis);
+                                                                      ^~~~~~
+src/UISimple_GSR.cpp: In member function 'void GSRUIModule::drawFullMenuShell(const SimpleMenuNav&, const char*, const char* const*, uint8_t)':
+src/UISimple_GSR.cpp:151:39: error: 'BODY_PAD_X' is not a member of 'GSRUIConfig'
+     drawDitherSidebar(d, GSRUIConfig::BODY_PAD_X, GSRUIConfig::BODY_Y, GSRUIConfig::SIDEBAR_W, GSRUIConfig::BODY_H);
+                                       ^~~~~~~~~~
+src/UISimple_GSR.cpp:151:64: error: 'BODY_Y' is not a member of 'GSRUIConfig'
+     drawDitherSidebar(d, GSRUIConfig::BODY_PAD_X, GSRUIConfig::BODY_Y, GSRUIConfig::SIDEBAR_W, GSRUIConfig::BODY_H);
+                                                                ^~~~~~
+src/UISimple_GSR.cpp:151:85: error: 'SIDEBAR_W' is not a member of 'GSRUIConfig'
+     drawDitherSidebar(d, GSRUIConfig::BODY_PAD_X, GSRUIConfig::BODY_Y, GSRUIConfig::SIDEBAR_W, GSRUIConfig::BODY_H);
+                                                                                     ^~~~~~~~~
+src/UISimple_GSR.cpp:151:109: error: 'BODY_H' is not a member of 'GSRUIConfig'
+     drawDitherSidebar(d, GSRUIConfig::BODY_PAD_X, GSRUIConfig::BODY_Y, GSRUIConfig::SIDEBAR_W, GSRUIConfig::BODY_H);
+                                                                                                             ^~~~~~
+src/UISimple_GSR.cpp: In member function 'void GSRUIModule::drawFooterBar(bool)':
+src/UISimple_GSR.cpp:169:53: error: 'SCREEN' is not a member of 'GSRUIConfig'
+   drawFooterDitherAndPill(d, (int16_t)(GSRUIConfig::SCREEN - GSRUIConfig::FOOTER_H), GSRUIConfig::FOOTER_H, line.c_str(),
+                                                     ^~~~~~
+src/UISimple_GSR.cpp:169:75: error: 'FOOTER_H' is not a member of 'GSRUIConfig'
+   drawFooterDitherAndPill(d, (int16_t)(GSRUIConfig::SCREEN - GSRUIConfig::FOOTER_H), GSRUIConfig::FOOTER_H, line.c_str(),
+                                                                           ^~~~~~~~
+src/UISimple_GSR.cpp:169:99: error: 'FOOTER_H' is not a member of 'GSRUIConfig'
+   drawFooterDitherAndPill(d, (int16_t)(GSRUIConfig::SCREEN - GSRUIConfig::FOOTER_H), GSRUIConfig::FOOTER_H, line.c_str(),
+                                                                                                   ^~~~~~~~
+src/UISimple_GSR.cpp: In member function 'void GSRUIModule::refreshMenuBodyPartial(const SimpleMenuNav&, const char* const*, uint8_t)':
+src/UISimple_GSR.cpp:181:35: error: 'BODY_Y' is not a member of 'GSRUIConfig'
+   int16_t y = align8(GSRUIConfig::BODY_Y);
+                                   ^~~~~~
+src/UISimple_GSR.cpp:182:41: error: 'BODY_Y' is not a member of 'GSRUIConfig'
+   int16_t yEnd = (int16_t)(GSRUIConfig::BODY_Y + GSRUIConfig::BODY_H);
+                                         ^~~~~~
+src/UISimple_GSR.cpp:182:63: error: 'BODY_H' is not a member of 'GSRUIConfig'
+   int16_t yEnd = (int16_t)(GSRUIConfig::BODY_Y + GSRUIConfig::BODY_H);
+                                                               ^~~~~~
+src/UISimple_GSR.cpp:186:33: error: 'SCREEN' is not a member of 'GSRUIConfig'
+   d.fillRect(0, y, GSRUIConfig::SCREEN, h, GxEPD_WHITE);
+                                 ^~~~~~
+src/UISimple_GSR.cpp:189:39: error: 'BODY_PAD_X' is not a member of 'GSRUIConfig'
+     drawDitherSidebar(d, GSRUIConfig::BODY_PAD_X, GSRUIConfig::BODY_Y, GSRUIConfig::SIDEBAR_W, GSRUIConfig::BODY_H);
+                                       ^~~~~~~~~~
+src/UISimple_GSR.cpp:189:64: error: 'BODY_Y' is not a member of 'GSRUIConfig'
+     drawDitherSidebar(d, GSRUIConfig::BODY_PAD_X, GSRUIConfig::BODY_Y, GSRUIConfig::SIDEBAR_W, GSRUIConfig::BODY_H);
+                                                                ^~~~~~
+src/UISimple_GSR.cpp:189:85: error: 'SIDEBAR_W' is not a member of 'GSRUIConfig'
+     drawDitherSidebar(d, GSRUIConfig::BODY_PAD_X, GSRUIConfig::BODY_Y, GSRUIConfig::SIDEBAR_W, GSRUIConfig::BODY_H);
+                                                                                     ^~~~~~~~~
+src/UISimple_GSR.cpp:189:109: error: 'BODY_H' is not a member of 'GSRUIConfig'
+     drawDitherSidebar(d, GSRUIConfig::BODY_PAD_X, GSRUIConfig::BODY_Y, GSRUIConfig::SIDEBAR_W, GSRUIConfig::BODY_H);
+                                                                                                             ^~~~~~
+*** [.pio/build/watchy-v1-v2/src/UISimple_GSR.cpp.o] Error 1
+========================== [FAILED] Took 8.10 seconds ==========================
+
+Environment    Status    Duration
+-------------  --------  ------------
+watchy-v1-v2   FAILED    00:00:08.097
+==================== 1 failed, 0 succeeded in 00:00:08.097 ====================

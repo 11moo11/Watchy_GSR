@@ -973,7 +973,7 @@ static char g_simpleLineBuf[8][36];
 static const char *g_simplePtrs[8];
 
 static uint8_t simpleVisibleRows() {
-  return (uint8_t)(GSRUILayout::BODY_H / GSRUILayout::ROW_H);
+  return (uint8_t)(GSRUIConfig::BODY_H / GSRUIConfig::ROW_H);
 }
 
 static void simpleEnsureScroll(uint8_t count) {
@@ -1101,7 +1101,7 @@ bool simpleUiConsumePress(WatchyGSR &w, uint8_t Pressed) {
     if (SimpleNav.selectedIndex > 0) {
       SimpleNav.selectedIndex--;
       simpleEnsureScroll(n);
-      if (SimpleNav.lastSelectedIndex != 255 && SimpleNav.partialStepsSinceFull < GSRUILayout::PARTIAL_STEPS_BEFORE_FULL)
+      if (SimpleNav.lastSelectedIndex != 255 && SimpleNav.partialStepsSinceFull < GSRUIConfig::PARTIAL_STEPS_BEFORE_FULL)
         SimpleNav.partialNextDraw = !Updates.Full;
       else
         SimpleNav.partialNextDraw = false;
@@ -1116,7 +1116,7 @@ bool simpleUiConsumePress(WatchyGSR &w, uint8_t Pressed) {
     if (SimpleNav.selectedIndex + 1 < n) {
       SimpleNav.selectedIndex++;
       simpleEnsureScroll(n);
-      if (SimpleNav.lastSelectedIndex != 255 && SimpleNav.partialStepsSinceFull < GSRUILayout::PARTIAL_STEPS_BEFORE_FULL)
+      if (SimpleNav.lastSelectedIndex != 255 && SimpleNav.partialStepsSinceFull < GSRUIConfig::PARTIAL_STEPS_BEFORE_FULL)
         SimpleNav.partialNextDraw = !Updates.Full;
       else
         SimpleNav.partialNextDraw = false;
@@ -1243,7 +1243,7 @@ void WatchyGSR::showWatchFace(){
       SimpleNav.partialNextDraw = false;
     }
     if (SimpleNav.partialNextDraw && !Updates.Full &&
-        SimpleNav.partialStepsSinceFull < GSRUILayout::PARTIAL_STEPS_BEFORE_FULL) {
+        SimpleNav.partialStepsSinceFull < GSRUIConfig::PARTIAL_STEPS_BEFORE_FULL) {
       uint8_t n = gsr_simple_build_labels(*this);
       GSRUIModule ui(*this);
       ui.refreshMenuBodyPartial(SimpleNav, g_simplePtrs, n);
@@ -1251,7 +1251,7 @@ void WatchyGSR::showWatchFace(){
       display.display(true);
       SimpleNav.partialNextDraw = false;
       SimpleNav.partialStepsSinceFull++;
-      if (SimpleNav.partialStepsSinceFull >= GSRUILayout::PARTIAL_STEPS_BEFORE_FULL) Updates.Full = true;
+      if (SimpleNav.partialStepsSinceFull >= GSRUIConfig::PARTIAL_STEPS_BEFORE_FULL) Updates.Full = true;
       if (!(InTurbo() || SoundActive() || !DarkWait())) DisplaySleep();
       DoHaptic = false;
       Updates.Drawn = true;
